@@ -45,6 +45,7 @@ void getAndSaveGmmModel(char *fileName, int dimension)
 	delete[] command;
 	delete [] c;
 }
+
 float* computAndSavePCA(float **data,int DIMENTIONS ,int SAMPLE_NUM, double pcaFactor,int * sizeofResult)
 {
 	Mat pcaSet(SAMPLE_NUM, DIMENTIONS, CV_32FC1); //原始数据
