@@ -57,7 +57,7 @@ float* computAndSavePCA(float **data,int DIMENTIONS ,int SAMPLE_NUM, double pcaF
         }
     }
     //cout<<"=============="<<endl;
-    PCA pca(pcaSet,Mat(),CV_PCA_DATA_AS_ROW);
+    PCA pca(pcaSet,Mat(),PCA::DATA_AS_ROW);
 
     Mat dst = pca.project(pcaSet);//映射新空间,from this new space , find half of elements !!!
     Mat result = dst.colRange(0,DIMENTIONS*pcaFactor);//return dst(:,1:deminsion*factorsize);
@@ -72,18 +72,19 @@ float* computAndSavePCA(float **data,int DIMENTIONS ,int SAMPLE_NUM, double pcaF
 	else if(DIMENTIONS == MBH_DI)
 		strcpy(filepath,pcaMbhInfo);
 
-
+	/*
 	Mat eigenvetors_d;
 	int index = pcaFactor * DIMENTIONS;
-	eigenvetors_d.create(index, DIMENTIONS, CV_32FC1);//eigen values of decreased dimension
+	eigenvetors_d.create(index, DIMENTIONS, CV_32FC1);//eigen vector of decreased dimension
 	for (int i = 0; i<index; ++i)
 	{
 		pca.eigenvectors.row(i).copyTo(eigenvetors_d.row(i));
 	}
 	//cout << "eigenvectors" <<endl << eigenvetors_d << endl;
+	*/
 	FileStorage fs_w(filepath, FileStorage::WRITE);//write mean and eigenvalues into xml file
 	fs_w << PCA_MEAN << pca.mean;
-	fs_w << PCA_EIGEN_VECTOR << eigenvetors_d;
+	fs_w << PCA_EIGEN_VECTOR << pca.eigenvectors;
 	fs_w.release();
 
 

@@ -25,6 +25,8 @@ void saveTofile(const void *data,int size,char *filename)
 
 int main(int argc, char const *argv[])
 {
+	if(argc !=3) { cout<<"The parameters are not 2: the filename and dimension. Teminate..."<<endl; return -1; }
+
 	const char *filename = argv[1];
 	const char *dimensionC = argv[2];
 	int dimension = atoi(dimensionC);
