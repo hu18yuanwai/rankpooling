@@ -1,0 +1,18 @@
+cd vl_gmm && gcc -o vlgmm vlgmm.cpp -I /home/cy/lib/vlfeat -L /home/cy/lib/vlfeat/bin/glnxa64 -l vl -lstdc++ && cp vlgmm ../debug/ && cd ..
+
+then move it to ../debug.
+
+需要安装vlfeat　，make以后，把libvl.so　软链接到/usr/libz下。
+函数将把vl_gmm的结果（mean , covarance , prior）　输出到trj.mean or trj.covariance or trj.prior.
+注意，15的意思是降维后的矩阵大小。注意vl_gmm使用的数据和得到的三个返回结果都是一维数组。const void * ,使用时需要注意.
+得到的mean数组大小为clusterNumber * dimension(15);covariance也是一样
+对prori　大小为clusterNumber
+
+
+for use command : 
+./vltest ../../remote/Data/Vocab/trj 15
+
+./vltest ../../remote/Data/Vocab/hog 48
+
+./vltest ../../remote/Data/Vocab/mbh 96
+
