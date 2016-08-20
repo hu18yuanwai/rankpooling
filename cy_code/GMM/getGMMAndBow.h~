@@ -1,0 +1,238 @@
+#ifndef _GETGMMANDBOW_H
+#define _GETGMMANDBOW_H
+#include <iostream>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <fstream>
+#include <vector>
+#include <math.h>
+#include <zlib.h>
+const int pathSize = 50;
+#define Malloc(type,n) (type *)malloc((n)*sizeof(type))
+static char* line = NULL;
+static int max_line_len;
+const int TRJ_DI = 30;
+const int HOG_DI = 96;
+const int HOF_DI = 108;
+const int MBH_DI = 192;
+
+void selectAllDescriptor(int st,int send,bool *isSelected,float ** trjAll,float ** hogAll,float ** hofAll,float **mbhAll,
+	vector<vector<float> > *trj,vector<vector<float> > *hog,vector<vector<float> > *hof,vector<vector<float> > *mbh)
+{
+	int selectItindex = 1;
+	for (size_t j = st; j <= send; j++) {
+			while(!isSelected[selectItindex])
+			{
+				selectItindex++;
+			}
+			for (size_t ti = 1; ti <= TRJ_DI; ti++) {
+				trjAll[j][ti] = (*trj)[j][ti];
+			}
+			for (size_t ti = 1; ti <= HOG_DI; ti++) {
+				hogAll[j][ti] = (*hog)[j][ti];
+			}
+			for (size_t ti = 1; ti <= HOF_DI; ti++) {
+				hofAll[j][ti] = (*hof)[j][ti];
+			}
+			for (size_t ti = 1; ti <= MBH_DI; ti++) {
+				mbhAll[j][ti] = (*mbh)[j][ti];
+			}
+			selectItindex++;
+	}
+	return;
+}
+
+// randomly select lines
+void SelectLines(bool* isSelected, int nLines, int nSelects)
+{
+	srand((unsigned)time(NULL));
+	for (int index = 1; index <= nLines; index++)
+	{
+		isSelected[index] = false;
+	}
+	int value;
+	for (int index = 1; index <= nSelects; index++)
+	{
+		do {
+			value = (rand() % nLines);
+		} while (isSelected[value]);
+		isSelected[value] = true;
+	}
+}
+
+char * ReadLine(gzFile gzfp)
+{
+	int len;
+	if(gzgets(gzfp, line, max_line_len) == NULL)
+		return NULL;
+	while(strrchr(line, '\n') == NULL)
+	{
+		max_line_len *= 2;
+		line = (char*) realloc(line, max_line_len);
+		len = (int) strlen(line);
+		if(gzgets(gzfp, line + len, max_line_len - len) == NULL)
+			break;
+	}
+	return line;
+}
+
+//find interface of gmm for next process.
+void getDescriptorFromFile(char *descriptorFileName,vector<vector<float> > *trj,vector<vector<float> > *hog,vector<vector<float> > *hof,vector<vector<float> > *mbh)
+{
+	int nLines = 0;
+	max_line_len = 1024;
+	line = Malloc(char, max_line_len);
+	gzFile file = gzopen(descriptorFileName,"r");
+	float value;
+	vector<float> temp;
+
+	while (ReadLine(file) != NULL)
+	{
+		int iToken,j;
+		char* feature;
+		feature = strtok(line," \t");
+		iToken = 1;
+		while(iToken <= 10)
+		{
+			feature = strtok(NULL," \t"); // get rid of obj and trj
+			iToken++;
+		}
+		temp.clear();
+		for (j = 0; j< TRJ_DI; j++)
+		{
+			feature = strtok(NULL," \t");
+			value = atof(feature);
+			temp.push_back(value);
+		}
+		trj->push_back(temp);
+		for (j = 0; j< HOG_DI; j++)
+		{
+			feature = strtok(NULL," \t");
+			value = atof(feature);
+			value = sqrt(value);
+			temp.push_back(value);
+		}
+		hog->push_back(temp);
+		temp.clear();
+		for (j = 0; j < HOF_DI; j++)
+		{
+			feature = strtok(NULL," \t");
+			value = atof(feature);
+			value = sqrt(value);
+			temp.push_back(value);
+
+		}
+		hof->push_back(temp);
+		temp.clear();
+		for (j = 0; j < MBH_DI; j++)
+		{
+			feature = strtok(NULL," \t");
+			value = atof(feature);
+			value = sqrt(value);
+			temp.push_back(value);
+		}
+		mbh->push_back(temp);
+	}
+	gzclose(file);
+}
+void getGMMAndBOW(char **fullvideoname,char * vocabsDir, char * descriptor_path){
+	int samples = 10001;
+	int bownumWords = 4000;
+	int gmmSize = 256;
+	int pcaFactor = 0.5;
+	int num_videos = 1707;
+	char *sampleFeatFile = new char[pathSize];
+	char *modelFilePath = new char[pathSize];
+	char *tempsampleFeatFile= "featfile";
+	char *tempmodelFilePath = "gmmvocmodel";
+
+	strcpy(sampleFeatFile,vocabsDir);
+	strcat(sampleFeatFile,tempsampleFeatFile);
+
+	strcpy(modelFilePath,vocabsDir);
+	strcat(modelFilePath,tempmodelFilePath);
+
+	printf("%s,%s, is sampleFeatFile and modelFilePath", sampleFeatFile,modelFilePath);
+
+	fstream _file;
+	_file.open(modelFilePath,ios::in);
+	if(_file)
+	{
+		cout<<"model File path exists!"<<endl;
+		return ;
+	}
+	_file.close();
+
+	_file.open(sampleFeatFile,ios::in);
+	if(_file)
+	{
+		cout<<"sampleFeatFile File path exists!"<<endl;
+	}
+	else
+	{
+		//attention of dimension.
+		float **trjAll = new float *[samples];
+		for (int i = 1; i < samples; ++i)
+		{
+			trjAll[i] = new float[TRJ_DI+1];
+			memset(trjAll[i],0,sizeof(trjAll[i]));
+		}
+		float **hogAll = new float *[samples];
+		for (int i = 1; i < samples; ++i)
+		{
+			hogAll[i] = new float[HOG_DI+1];
+		}
+		float **hofAll = new float *[samples];
+		for (int i = 1; i < samples; ++i)
+		{
+			hofAll[i] = new float[HOF_DI+1];
+		}
+		float **mbhAll = new float *[samples];
+		for (int i = 1; i < samples; ++i)
+		{
+			mbhAll[i] = new float[MBH_DI+1];
+		}
+		printf("%s\n","getGMMAndBOW : update num_videos only to include training videos");
+
+		int st = 1,send=0;
+		int num_samples_per_vid = round(samples / num_videos);
+		vector<vector<float> > trj;
+		vector<vector<float> > hog;
+		vector<vector<float> > hof;
+		vector<vector<float> > mbh;
+		for (int i = 1; i <= num_videos; ++i)
+		{
+			hog.clear();
+			hof.clear();
+			mbh.clear();
+			trj.clear();
+			char *descriptorFile = new char[pathSize];
+			strcpy(descriptorFile,descriptor_path);
+			strcat(descriptorFile,strcat(basename(fullvideoname[i]),".gz"));
+			getDescriptorFromFile(descriptorFile,&trj,&hog,&hof,&mbh);
+
+			int selectSize = trj.size()+1; //样本总数
+			bool *isSelected = new bool[selectSize];
+			if(selectSize > num_samples_per_vid)//样本总数大于采样总数
+			{
+				SelectLines(isSelected,selectSize,num_samples_per_vid);
+				send = st + num_samples_per_vid-1;
+			}
+			else
+			{
+				for (int i = 1; i <= selectSize; i++) {
+					isSelected[i] = 1;
+				}
+				send = st + selectSize-1;
+			}
+			selectAllDescriptor(st,send,isSelected,trjAll,hogAll,hofAll,mbhAll,&trj,&hog,&hof,&mbh);
+			st = send+1;
+		}
+
+
+	}
+	_file.close();
+
+}
+#endif

@@ -1,0 +1,42 @@
+环境依赖：
+opencv2.9.9
+home/lib/vlfeat(需要make，之后把libvl.so　软链接，之后刷新环境变量)
+home/lib/liblinear
+home/lib/libsvm
+
+文件设置 :
+~/remote/Hollywood2　存原始视频文件
+　　　　　　　　/Data
+　　　　　　　　　　　　　/descriptor 存密集轨迹
+             /Vocab　存放的是采样的1000000个特征，还保存了降维后的数据，以及PCA特征值和特征向量,还保存了对每个特征的gmm的三个特征，即 means, covvariances,和priors.
+             /feats 采样得到的特征编码
+　　　　　　　　　　　　　　　　　　　hof/hog/mbh/trj/w 其中w存放的是liblinear系数，利用w的系数来进行训练和测试.
+参数设置：
+提取密集轨迹，设置一样
+采样1000000个轨迹.
+PCA降维，把维度降低到一半
+fisherVector得到的特征编码维度为2D*K，D是PCA降维后的维度
+把每个视频的密集轨迹按照帧来分类，然后读取PCA参数设置
+
+程序思路：
+运行的顺序如下：
+improved_trajectory得到密集轨迹
+
+运行方法：bash run.sh
+
+GMM 首先降维得到高斯混合模型
+
+运行方法：bash run.sh
+
+FV 对每个视频通过每一帧进行视频表示
+
+运行方法：bash run.sh
+
+Darwin　利用liblinear得到每个视频的w参数，也就是说，把每个视频当做liblinear的参数进行训练，保存结果在
+
+运行方法：bash run.sh
+
+trainAndTest　读取每个视频的w表示，进行分类，并且统计结果，保存在当前目录下面的accuracyFile中
+
+运行方法：bash run.sh
+test是测试程序，没什么用...

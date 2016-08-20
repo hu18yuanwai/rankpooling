@@ -1,0 +1,4 @@
+g++ -o getdarwin getDarwin.cpp -I ~/lib/liblinear/ -lstdc++ -lm
+
+testMatrix.cpp　作用是返回矩阵的转置和算两个矩阵相乘.
+A.*A';这种.

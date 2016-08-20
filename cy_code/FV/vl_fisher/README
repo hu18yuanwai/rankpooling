@@ -1,0 +1,15 @@
+gcc -o vlfisher fisher.cpp -I /home/cy/lib/vlfeat -I /usr/local/include -L /home/cy/lib/vlfeat/bin/glnxa64 -l vl -lstdc++ -l z -l m -l opencv_highgui -l opencv_core
+
+gcc -o fv fishervector.cpp -I /home/cy/lib/vlfeat -I /usr/local/include -L /home/cy/lib/vlfeat/bin/glnxa64 -l vl -lstdc++ -l z -l m -l opencv_highgui -l opencv_core
+
+gcc -o fisher vectortest.cpp -I /home/cy/lib/vlfeat -L /home/cy/lib/vlfeat/bin/glnxa64 -l vl -lstdc++ -l z -l m
+
+
+link it to libaray==========:> if you use math.h ,then you need to link it.
+
+then move it to ../debug.
+
+需要安装vlfeat　，make以后，把libvl.so　软链接到/usr/libz下。
+
+for use command : 
+./vlfisher  ../../remote/Data/descriptor/actioncliptrain00001[1:95],../../remote/Data/Vocab/hog.gmmmeans, gmmSize, ../../remote/Data/Vocab/hog.gmmcovariances, ../../remote/Data/Vocab/hog.gmmpriors, numDataToEncode->95, dimension.

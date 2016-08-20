@@ -1,0 +1,1 @@
+g++ -o killpca killpca.cpp -l opencv_highgui -l opencv_core
